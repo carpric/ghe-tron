@@ -4,6 +4,7 @@ title: "GHE-TRON: Transient multipole solver for ground heat exchangers"
 authors:
   - family-names: Prieto
     given-names: Carlos
+    orcid: "https://orcid.org/0000-0002-7257-3313"
 license: MIT
 message: >-
   Please cite the software version used and the accompanying manuscript,
