@@ -15,12 +15,12 @@ class OperatorTests(unittest.TestCase):
     def test_single_u_at_reported_nodes(self):
         with TemporaryDirectory() as cache, np.load(DATA / "figure_samples.npz") as archive:
             model = bind(read_layout("Q222"), Path(cache))
-            time = archive["Q222_trained_tau"]
-            np.testing.assert_allclose(model.fluid(time), archive["Q222_trained_fluid"], atol=1e-9, rtol=0)
+            time = archive["Q222_optimized_tau"]
+            np.testing.assert_allclose(model.fluid(time), archive["Q222_optimized_fluid"], atol=1e-9, rtol=0)
             # Use the full published probe set so both calculations have the same radial interpolation range.
             local, wake = probes(CASES["Q222"]["case"])
             values = model.fields(10, np.vstack((local, wake)))
-            expected = np.r_[archive["Q222_trained_ground10"], archive["Q222_trained_wake10"]]
+            expected = np.r_[archive["Q222_optimized_ground10"], archive["Q222_optimized_wake10"]]
             np.testing.assert_allclose(values, expected, atol=1e-8, rtol=0)
 
     def test_parallel_circuit_and_load_changes(self):

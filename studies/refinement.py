@@ -26,7 +26,7 @@ def observations(reference, operator):
     for data, stride in zip([*reference, operator], (1, 2, 4, 2)):
         np.testing.assert_allclose(t, data["tau"][::stride], atol=1e-12, rtol=0)
         time_series.append(data["fluid"][::stride])
-    for col, observable in enumerate(("inlet", "outlet")):
+    for col, observable in enumerate(("supply", "return")):
         for horizon in (0.02, 2.0, 100.0):
             mask = t <= horizon + 1e-13
             nodes = t[mask]
@@ -127,8 +127,8 @@ def direct_check():
             def interpolate(col):
                 return np.r_[initial, CubicSpline(np.log(a.tau), a[col])(np.log(times[1:]))]
 
-            cached = interpolate("production_inlet")
-            direct = interpolate("direct_inlet")
+            cached = interpolate("production_supply")
+            direct = interpolate("direct_supply")
             np.testing.assert_allclose(cached, original, atol=2e-10, rtol=1e-10)
             for label, values in [
                 ("tabulated", original),
@@ -138,6 +138,6 @@ def direct_check():
                 relative = 100 * np.sqrt(
                     np.trapezoid((values - obs) ** 2, times) / np.trapezoid(obs**2, times)
                 )
-                records.append(dict(case=name, wall=label, inlet_full_vs_third_pct=relative))
+                records.append(dict(case=name, wall=label, supply_full_vs_third_pct=relative))
     write_csv(HERE / "wall_check.csv", records)
     return pd.DataFrame(records)

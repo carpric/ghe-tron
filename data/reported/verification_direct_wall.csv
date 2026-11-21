@@ -1,4 +1,4 @@
-case,wall,inlet_full_vs_third_pct
+case,wall,supply_full_vs_third_pct
 Q122,tabulated,0.013286443143278804
 Q122,direct,0.013286443143195367
 Q122,exact_pe_fit,0.013286443143195367

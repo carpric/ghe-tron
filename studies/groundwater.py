@@ -66,7 +66,7 @@ def main():
                         raise ValueError("Incomplete ground probe interpolation")
                     probes.append((pe, flux, source, t, up, down))
     for name, headings, records in (
-        ("groundwater_fluids", "Pe darcy_m_per_day source tau time_days inlet_C outlet_C", histories),
+        ("groundwater_fluids", "Pe darcy_m_per_day source tau time_days supply_C return_C", histories),
         ("groundwater_probes", "Pe darcy_m_per_day source tau upstream_rise_K downstream_rise_K", probes),
     ):
         with (RESULTS / (name + ".csv")).open("w", newline="") as file:

@@ -11,7 +11,7 @@ COUPLING = 0.55
 LAMBDA, GAMMA, ANGLE = 1.2, 0.8, np.deg2rad(25.0)
 PAIRS = {"adjacent": [(0, 3), (1, 2)], "opposite": [(0, 3), (2, 1)]}
 SNAP = np.array([0.02, 1.0, 10.0, 20.0, 100.0])
-# Each tuple specifies inlet layout, Péclet number, and first-branch flow fraction.
+# Each tuple specifies supply layout, Péclet number, and first-branch flow fraction.
 CASES = [(kind, pe, 0.5) for pe in (0.0, 2.0, 5.0) for kind in PAIRS] + [("opposite", 2.0, 0.35)]
 
 

@@ -85,7 +85,7 @@ def verification():
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    tasks = ["summary", "figures", "single", "wake", "parallel", "groundwater", "verification", "timing", "all"]
+    tasks = ["summary", "figures", "single", "wake", "parallel", "groundwater", "verification", "timing", "quasi-steady", "conductive-resistance", "all"]
     if (ROOT / "optional/asymptotic/compare.py").is_file():
         tasks.append("asymptotic")
     p.add_argument("study", choices=tasks)
@@ -98,7 +98,7 @@ def main():
         p.error("--computed applies to summary and figures")
     RESULTS.mkdir(exist_ok=True)
     steps = (
-        ("single", "wake", "parallel", "groundwater", "verification", "timing", "summary", "figures")
+        ("single", "wake", "parallel", "groundwater", "verification", "timing", "quasi-steady", "conductive-resistance", "summary", "figures")
         if args.study == "all"
         else (args.study,)
     )
@@ -127,6 +127,12 @@ def main():
             desktop_timing.run()
             from studies.benchmark import run
 
+            run()
+        elif step == "quasi-steady":
+            from studies.quasi_steady import run
+            run()
+        elif step == "conductive-resistance":
+            from studies.conduction_resistance import run
             run()
         elif step == "asymptotic":
             from optional.asymptotic.compare import present

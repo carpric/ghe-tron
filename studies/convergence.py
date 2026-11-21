@@ -42,10 +42,10 @@ def outputs(case, resolution, times, rule):
     results = {}
     for time in times:
         coefficients = None
-        inlet = model.right
+        supply = model.right
         for frequency, weight in zip(nodes / time, weights):
             increment, state = model.frequency(frequency, True)
-            inlet += (weight * increment).real
+            supply += (weight * increment).real
             profiles = model.profiles(frequency, state, readout.grid)
             if coefficients is None:
                 coefficients = [weight * v for v in profiles]
@@ -53,7 +53,7 @@ def outputs(case, resolution, times, rule):
                 for accumulated, v in zip(coefficients, profiles):
                     accumulated += weight * v
         local, wake = readout.field(coefficients)
-        results[time, "fluid"] = np.array([inlet, inlet - 1])
+        results[time, "fluid"] = np.array([supply, supply - 1])
         results[time, "grout"] = local[readout.grout]
         results[time, "ground"] = local[~readout.grout]
         if time >= 10 and case["Pe"]:
@@ -74,8 +74,8 @@ def curves():
         ref = outputs(CASES[name]["case"], BASE, TIMES, euler_rule(45))
         check = outputs(CASES[name]["case"], BASE, TIMES, euler_rule(37))
         for j in range(4, 13):
-            fitted = weights[f"learned_z{j}"], weights[f"learned_w{j}"]
-            for method, rule in (("Talbot", talbot(j)), ("learned", fitted)):
+            fitted = weights[f"optimized_z{j}"], weights[f"optimized_w{j}"]
+            for method, rule in (("Talbot", talbot(j)), ("optimized", fitted)):
                 values = outputs(CASES[name]["case"], BASE, TIMES, rule)
                 for (time, observable), target in ref.items():
                     scale = rms(target)

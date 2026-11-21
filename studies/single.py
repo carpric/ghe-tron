@@ -86,10 +86,10 @@ def predict(case, rule, table=None, locations=None):
             if t in (10, 20, 100):
                 wake.append(down)
     change = CubicSpline(np.log(anchors), means)(np.log(time[1:]))
-    inlet = model.right + np.r_[0.0, change]
+    supply = model.right + np.r_[0.0, change]
     ds = dict(
         tau=time,
-        fluid=np.column_stack((inlet, inlet - 1)),
+        fluid=np.column_stack((supply, supply - 1)),
         local=np.vstack([np.zeros_like(local[0]), local]),
         wake=np.array(wake),
         grout=read.grout,
@@ -101,7 +101,7 @@ def predict(case, rule, table=None, locations=None):
 
 def rows_for(ref, other, case):
     time = ref["tau"]
-    for j, quantity in enumerate(("inlet", "outlet")):
+    for j, quantity in enumerate(("supply", "return")):
         vals = np.interp(time, other["tau"], other["fluid"][:, j])
         for cutoff in (0.02, 2.0, 100.0):
             inside = time <= cutoff

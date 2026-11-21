@@ -41,12 +41,12 @@ def model(kind, pe, fraction, centres=CENTRES):
 
 def outputs(tube, pairs, fractions):
     pairs = np.array(pairs)
-    inlet = tube[:, pairs[:, 0]]
+    supply = tube[:, pairs[:, 0]]
     returns = tube[:, pairs[:, 1]]
-    np.testing.assert_allclose(inlet, inlet[:, 0:1] + np.zeros_like(inlet), atol=2e-11, rtol=0)
+    np.testing.assert_allclose(supply, supply[:, 0:1] + np.zeros_like(supply), atol=2e-11, rtol=0)
     mix = returns @ fractions
-    np.testing.assert_allclose(inlet[:, 0] - mix, 1.0, atol=2e-11, rtol=0)
-    return np.column_stack((inlet[:, 0], returns, mix))
+    np.testing.assert_allclose(supply[:, 0] - mix, 1.0, atol=2e-11, rtol=0)
+    return np.column_stack((supply[:, 0], returns, mix))
 
 
 def predict():

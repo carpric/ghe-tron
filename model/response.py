@@ -241,7 +241,7 @@ class MultiPipeResponse:
         return reconstruct(self.fluid(t), load)
 
     def circuit_temperatures(self, time, load=None):
-        """Parallel U-tubes: common supply, branch returns and flow-weighted mixed outlet.
+        """Parallel U-tubes: common supply, branch returns and flow-weighted mixed return.
 
         Omit load for the unit step (right limit at zero). A load vector specifies
         the signed heat input on successive uniform intervals after a zero pre-load.

@@ -15,7 +15,7 @@ def main():
     assert len(anchors) == 37
     mid = np.sqrt(anchors[:-1] * anchors[1:])
 
-    def inlet(model, t, force_direct):
+    def supply(model, t, force_direct):
         return model.right + sum(
             (weight * model.frequency(node / t, force_direct)[0]).real for node, weight in zip(z, weights)
         )
@@ -40,23 +40,23 @@ def main():
                     return value + np.sqrt(s) * table.eye, None
 
                 exact_pe_model.exterior.response = exact_pe_response
-            direct = [inlet(model, t, False) for t in anchors]
-            normal = [inlet(table_model, t, t in single.TIMES) for t in anchors]
-            at_flow = [inlet(exact_pe_model, t, t in single.TIMES) for t in anchors]
+            direct = [supply(model, t, False) for t in anchors]
+            normal = [supply(table_model, t, t in single.TIMES) for t in anchors]
+            at_flow = [supply(exact_pe_model, t, t in single.TIMES) for t in anchors]
             anchor_values.extend(
-                dict(case=name, tau=t, direct_inlet=d, production_inlet=n, exact_pe_fit=e)
+                dict(case=name, tau=t, direct_supply=d, production_supply=n, exact_pe_fit=e)
                 for t, d, n, e in zip(anchors, direct, normal, at_flow)
             )
             direct_spline = CubicSpline(np.log(anchors), direct)(np.log(mid))
             normal_spline = CubicSpline(np.log(anchors), normal)(np.log(mid))
             exact_pe_spline = CubicSpline(np.log(anchors), at_flow)(np.log(mid))
             for t, ds, ns, es in zip(mid, direct_spline, normal_spline, exact_pe_spline):
-                exact = inlet(model, t, False)
+                exact = supply(model, t, False)
                 rows.append(
                     dict(
                         case=name,
                         tau=t,
-                        direct_inlet=exact,
+                        direct_supply=exact,
                         time_spline_minus_direct=ds - exact,
                         table_effect_on_spline=ns - ds,
                         pe_interpolation_effect=ns - es,

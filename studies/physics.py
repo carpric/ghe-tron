@@ -118,7 +118,7 @@ def run():
             changed[f"xp{k}"], changed[f"yp{k}"] = rot @ [case[f"xp{k}"], case[f"yp{k}"]]
         wall = np.abs(np.linalg.norm(xy, axis=1) - 1) < 1e-12
         z, w = nodes([1.0], A=14.0, n=12, m=12)
-        for arm, rule in [("trained", read_rule()), ("table", (z[0], w[0] / z[0]))]:
+        for arm, rule in [("optimized", read_rule()), ("table", (z[0], w[0] / z[0]))]:
             a = predict(case, rule)
             b = predict(changed, rule, locations=(xy @ rot.T, down @ rot.T))
             rotations.append(

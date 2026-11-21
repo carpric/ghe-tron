@@ -1,4 +1,4 @@
-"""A single rational readout trained on the differential equation for a sustained heat step."""
+"""A single rational readout optimized on the differential equation for a sustained heat step."""
 
 from pathlib import Path
 from time import perf_counter

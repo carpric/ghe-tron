@@ -22,7 +22,7 @@ def inversion(source, destination):
         frame = data[data.observable == obs]
         refs = frame.drop_duplicates(["case", "tau"]).reference_difference
         ax.axhline(refs.median(), color="#686868", ls=":", lw=1.3)
-        for method, color, marker in (("learned", NAVY, "o"), ("Talbot", RUST, "s")):
+        for method, color, marker in (("optimized", NAVY, "o"), ("Talbot", RUST, "s")):
             grouped = frame[frame.method == method].groupby("J").rms
             ax.plot(grouped.median(), color=color, marker=marker, ms=3.7, lw=1.35)
             ax.plot(grouped.max(), color=color, ls="--", lw=1)
@@ -60,7 +60,7 @@ def timing(refinement, timing, destination):
     cases = ["Q122", "Q222", "Q322", "Q422"]
     colors = [NAVY, GREEN, RUST, "#745483"]
     for ax, obs, time, title in zip(
-        axes, ("inlet", "wake"), (100, 10), ("(a) Inlet, full history", r"(b) Downstream ground, $\tau=10$")
+        axes, ("supply", "wake"), (100, 10), ("(a) Supply, full history", r"(b) Downstream ground, $\tau=10$")
     ):
         frame = data[(data.observable == obs) & (data.tau == time)].set_index("case")
         for name, color in zip(cases, colors):

@@ -1,8 +1,19 @@
 # GHE-TRON
 
-Research code for *A semi-analytical transient multipole method for fluid and ground temperatures of ground heat exchangers under groundwater flow*.
+Research code for *Transient conjugate heat transfer around ground heat exchangers in groundwater flow: a semi-analytical solution at finite Péclet number*.
 
 Given pipe positions and radii, fluid-circuit connections, material properties and groundwater flow, GHE-TRON computes unit-step fluid temperatures and grout and ground fields. At each complex frequency, a transient multipole solution in the grout couples the circuit and pipe walls to a temperature-to-flux map for the unbounded ground. A ten-node Laplace inversion rule, optimized once on scalar decaying modes and reused across exchangers, recovers the time response. Independent finite-element (FE) solutions assess the resulting temperatures.
+
+## Reproduce the exterior verification in Appendix A and Supplementary Table S9
+
+After installing the requirements, run from the repository root:
+
+```sh
+python -m studies.radial_modes.check_wall
+python -m studies.radial_modes.check_profiles
+```
+
+The first command writes the four scalar wall impedances for each of six flow/frequency pairs and compares the Bessel series with inward integration and compactified collocation. Group the four rows by Péclet number and complex frequency and take the maximum absolute difference in each group to obtain Table S9. The second command verifies the normalized radial profiles at five radii and prints the steady sine-mode and zero-flow limits. Both write to `results/radial_modes/`. The corresponding reference CSVs are under `data/reported/radial_modes/`. Only these independent checks use mpmath. Plain inference uses the original collocation implementation.
 
 ## Run a prediction
 
@@ -39,6 +50,17 @@ Use the example JSON as a template. `centres` and `radii` describe circular pipe
 
 The circuit closure gives one representative fluid temperature per leg. The assessed circuits are single-, double- and triple-U exchangers. For a general linear circuit use `Circuit(A, B, load_vector)` with `MultiPipeResponse` in `model/response.py`. The general API exposes individual fluid temperatures and both solid fields.
 
+## Transient ground storage and the conduction limit
+
+From the repository root, run the following with the inference environment. The first command compares the transient and steady wall maps on Q221 and Q422 at four groundwater strengths, writes full histories and refinement checks, and generates the manuscript figure. The second uses two harmonic unit pipe inputs to reconstruct the conductive outer resistance of Rivero and Hermanns (2021).
+
+```bash
+python reproduce.py quasi-steady
+python reproduce.py conductive-resistance
+```
+
+Outputs are written to `results/quasi_steady/`. The archived observations are in `data/reported/quasi_steady/`. The 1% and 5% thresholds refer to all remaining sampled times through 100. In the conduction check the apparent ground temperature and resistance weighting follow the published definitions.
+
 ## Reproduce the reported results
 
 The following commands recreate the summary statistics and numerical plots from the archived measurements and check the public solver against saved responses. They require only the inference environment.
@@ -49,7 +71,7 @@ python reproduce.py figures
 python -m unittest discover -s tests
 ```
 
-For example, the 24 single-U cases give median full-history inlet and outlet discrepancies of **0.02709% and 0.04635%** against fine FE. The median downstream field discrepancy at τ = 100 is **0.04159%** across the 18 flowing cases. The summary reports case counts and paired coarse–fine differences alongside the errors. Full casewise results and verification data are in `data/reported/`. The plots include unit and signed histories, local and downstream fields, the dimensional groundwater example, branch returns, inversion order and error versus runtime.
+For example, the 24 single-U cases give median full-history supply and return discrepancies of **0.02709% and 0.04635%** against fine FE. The median downstream field discrepancy at τ = 100 is **0.04159%** across the 18 flowing cases. The summary reports case counts and paired coarse–fine differences alongside the errors. Full casewise results and verification data are in `data/reported/`. The plots include unit and signed histories, local and downstream fields, the dimensional groundwater example, branch returns, inversion order and error versus runtime.
 
 To recompute the results from the equations, create the reference-solver environment. This includes DOLFINx, PETSc and Gmsh. Run one operating case before starting the panel:
 

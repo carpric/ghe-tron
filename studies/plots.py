@@ -35,7 +35,7 @@ def style(ax):
 def fluid(get):
     fig, axes = plt.subplots(4, 2, figsize=(6.6, 6.7), layout="constrained", sharex="col")
     for index, name in enumerate(OPS):
-        a = get("trained", name)
+        a = get("optimized", name)
         b = get("unit_fine", name)
         t = a["tau"]
         np.testing.assert_array_equal(t, b["tau"])
@@ -71,10 +71,10 @@ def fluid(get):
     axes[-1, 1].set_xlabel(r"Full history, $\tau$")
     fig.legend(
         handles=[
-            Line2D([], [], color=BLUE, label="GHE-TRON inlet"),
-            Line2D([], [], color=RUST, label="GHE-TRON outlet"),
-            Line2D([], [], color=BLUE, marker="o", ms=4, mfc="white", ls="", label="FE inlet"),
-            Line2D([], [], color=RUST, marker="s", ms=4, mfc="white", ls="", label="FE outlet"),
+            Line2D([], [], color=BLUE, label="GHE-TRON supply"),
+            Line2D([], [], color=RUST, label="GHE-TRON return"),
+            Line2D([], [], color=BLUE, marker="o", ms=4, mfc="white", ls="", label="FE supply"),
+            Line2D([], [], color=RUST, marker="s", ms=4, mfc="white", ls="", label="FE return"),
         ],
         loc="outside upper center",
         ncols=4,
@@ -92,7 +92,7 @@ def field_figure(get, wake):
         profiles = outer[1].subgridspec(1, 2).subplots()
     for i, name in enumerate(names):
         p = CASES[name]["case"]
-        a, b = [get(key, name) for key in ("trained", "unit_fine")]
+        a, b = [get(key, name) for key in ("optimized", "unit_fine")]
         if wake:
             x = np.linspace(3, 25, 89)
             y = np.linspace(-8, 8, 65)
@@ -194,7 +194,7 @@ def operating(get, signed_scores):
     style(axes["q"])
     for i, name in enumerate(OPS):
         ax = axes["abcd"[i]]
-        a = get("trained", name)
+        a = get("optimized", name)
         b = get("signed_fine", name)
         t = b["tau"]
         q = np.take(PLAN["levels"], np.searchsorted(PLAN["switches"], t - 1e-10))
@@ -208,7 +208,7 @@ def operating(get, signed_scores):
             expected = next(
                 float(r["rms"])
                 for r in signed_scores
-                if r["case"] == name and r["observable"] == ["signed inlet", "signed outlet"][j]
+                if r["case"] == name and r["observable"] == ["signed supply", "signed return"][j]
             )
             np.testing.assert_allclose(
                 np.sqrt(np.trapezoid((response[:, j] - b["fluid"][:, j]) ** 2, t) / 100),
@@ -225,10 +225,10 @@ def operating(get, signed_scores):
             ax.set_xlabel(r"Dimensionless time $\tau$")
     fig.legend(
         handles=[
-            Line2D([], [], color=BLUE, label="Inlet"),
-            Line2D([], [], color=RUST, label="Outlet"),
-            Line2D([], [], color=BLUE, marker="o", mfc="white", ls="none", ms=4, label="FE inlet"),
-            Line2D([], [], color=RUST, marker="s", mfc="white", ls="none", ms=4, label="FE outlet"),
+            Line2D([], [], color=BLUE, label="Supply"),
+            Line2D([], [], color=RUST, label="Return"),
+            Line2D([], [], color=BLUE, marker="o", mfc="white", ls="none", ms=4, label="FE supply"),
+            Line2D([], [], color=RUST, marker="s", mfc="white", ls="none", ms=4, label="FE return"),
         ],
         loc="outside upper center",
         ncol=4,
@@ -252,11 +252,11 @@ def groundwater_sensitivity(data):
         for source in ("GHE-TRON", "fine FE"):
             rr = [r for r in fluids if float(r["Pe"]) == pe and r["source"] == source]
             hours = np.array([24 * float(r["time_days"]) for r in rr])
-            inlet = np.array([float(r["inlet_C"]) for r in rr])
+            supply = np.array([float(r["supply_C"]) for r in rr])
             if source == "GHE-TRON":
                 ax.plot(
                     hours[1:],
-                    inlet[1:],
+                    supply[1:],
                     color=color,
                     ls=linestyle,
                     lw=1.65,
@@ -266,9 +266,9 @@ def groundwater_sensitivity(data):
                 # Offset the marker times so the two weakly separated curves remain legible.
                 targets = np.geomspace(0.006, 150.0, 13)[1:-1] * 1.16**i
                 idx = np.unique(1 + abs(np.log(hours[1:, None] / targets)).argmin(axis=0))
-                ax.plot(hours[idx], inlet[idx], "o", color=color, ms=3.2, mfc="white", mew=0.8)
+                ax.plot(hours[idx], supply[idx], "o", color=color, ms=3.2, mfc="white", mew=0.8)
     ax.plot([], [], "o", color=INK, mfc="white", ms=3.5, label="Fine FE")
-    ax.set(xscale="log", xlim=(0.00065, 175), ylabel=r"Inlet temperature ($^\circ$C)")
+    ax.set(xscale="log", xlim=(0.00065, 175), ylabel=r"Supply temperature ($^\circ$C)")
     ax.set_xticks([1 / 60, 1, 24, 156.25], ["1 min", "1 h", "1 day", "6.51 days"])
     ax.set_xlabel("Elapsed time after the start of injection")
     ax.set_title("(a) Fluid response under a sustained 5 kW injection", loc="left")
@@ -326,7 +326,7 @@ def figures(data):
 
     def get(method, layout):
         if computed:
-            key = {"trained": "operator", "unit_fine": "fine", "signed_fine": "signed_fine"}[method]
+            key = {"optimized": "operator", "unit_fine": "fine", "signed_fine": "signed_fine"}[method]
             with np.load(RESULTS / "unit" / layout / (key + ".npz")) as z:
                 arrays = {k: z[k] for k in ("fluid", "tau")}
                 if layout in ("Q222", "Q422") and key != "signed_fine":
@@ -435,5 +435,5 @@ def summary(data):
     report.to_csv(target / "single_u.csv")
     for flow, frame in contrasts.reset_index().groupby("flow"):
         aggregate(frame).to_csv(target / (flow + ".csv"))
-    print(report.loc[[(quantity, 100.0) for quantity in ("inlet", "outlet", "wake")]].to_string())
+    print(report.loc[[(quantity, 100.0) for quantity in ("supply", "return", "wake")]].to_string())
     print(target)

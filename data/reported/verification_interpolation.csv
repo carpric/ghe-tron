@@ -1,4 +1,4 @@
-case,tau,direct_inlet,time_spline_minus_direct,table_effect_on_spline,pe_interpolation_effect,frequency_fit_at_exact_pe,production_minus_direct
+case,tau,direct_supply,time_spline_minus_direct,table_effect_on_spline,pe_interpolation_effect,frequency_fit_at_exact_pe,production_minus_direct
 Q122,0.0006050602159105033,0.8643042312177499,6.790715749716014e-07,0.0,0.0,0.0,6.790715749716014e-07
 Q122,0.0008860450126690165,0.8843282988212874,-2.656593377503569e-07,0.0,0.0,0.0,-2.656593377503569e-07
 Q122,0.0012975167492945217,0.9077177491841755,6.018991971501464e-10,0.0,0.0,0.0,6.018991971501464e-10

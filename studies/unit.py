@@ -63,7 +63,7 @@ def signed_metrics(reference, candidate):
     def norm(v):
         return np.sqrt(np.trapezoid(v * v, times) / times[-1])
 
-    for col, label in enumerate(("signed inlet", "signed outlet")):
+    for col, label in enumerate(("signed supply", "signed return")):
         truth = reference["fluid"][:, col]
         yield label, times[-1], norm(candidate["fluid"][:, col] - truth), norm(truth)
 
@@ -129,11 +129,11 @@ def temporal(names):
         for count, A in ((37, 16.0), (45, 18.0)):
             s, w = nodes([1.0], A, (count - 1) // 2, (count - 1) // 2)
             evaluations[count] = predict(case, (s[0], w[0] / s[0]), table)
-        for label, rule in (("fixed", "fixed.npz"), ("trained", "fitted.npz")):
+        for label, rule in (("fixed", "fixed.npz"), ("optimized", "fitted.npz")):
             evaluations[label] = predict(case, read_rule(rule), table)
         base = evaluations[45]
         by = {}
-        for key in (37, "fixed", "trained"):
+        for key in (37, "fixed", "optimized"):
             values = evaluations[key]
             metrics = list(rows_for(base, values, case))
             if name in OPERATING:
@@ -142,7 +142,7 @@ def temporal(names):
             by[key] = {(obs, t): (err, signal) for obs, t, err, signal in metrics}
         for (obs, t), (diff, scale) in by[37].items():
             fixed = by["fixed"][obs, t][0]
-            trained = by["trained"][obs, t][0]
+            optimized = by["optimized"][obs, t][0]
             tol = max(diff, 1e-11)
             records.append(
                 dict(
@@ -151,13 +151,13 @@ def temporal(names):
                     observable=obs,
                     time=t,
                     fixed_rms=fixed,
-                    trained_rms=trained,
+                    optimized_rms=optimized,
                     numerical_difference=diff,
                     reference_signal=scale,
                     fixed_pct=100 * fixed / scale,
-                    trained_pct=100 * trained / scale,
-                    resolved_gain=fixed - trained > tol,
-                    resolved_loss=trained - fixed > tol,
+                    optimized_pct=100 * optimized / scale,
+                    resolved_gain=fixed - optimized > tol,
+                    resolved_loss=optimized - fixed > tol,
                 )
             )
     return records

@@ -16,7 +16,7 @@ from studies.single import predict, read_rule
 
 
 def fluid_interpolator(case, table):
-    """Build the scalar inlet readout used for the timed single-U fluid workload."""
+    """Build the scalar supply readout used for the timed single-U fluid workload."""
     model = BoundaryOperator(case, 12, 22, 28, 14)
     if case["Pe"]:
         table.attach(model)
@@ -28,16 +28,16 @@ def fluid_interpolator(case, table):
     spline = CubicSpline(np.log(ANCHORS), means)
 
     def fluid(times):
-        inlet = np.full(times.shape, model.right)
-        inlet[1:] += spline(np.log(times[1:]))
-        return np.column_stack((inlet, inlet - 1))
+        supply = np.full(times.shape, model.right)
+        supply[1:] += spline(np.log(times[1:]))
+        return np.column_stack((supply, supply - 1))
 
     return fluid
 
 
 def run():
     freq, weight = nodes([1.0], A=14.0, n=12, m=12)
-    rules = {"fixed": read_rule("fixed.npz"), "trained": read_rule(), "table": (freq[0], weight[0] / freq[0])}
+    rules = {"fixed": read_rule("fixed.npz"), "optimized": read_rule(), "table": (freq[0], weight[0] / freq[0])}
     rng = np.random.default_rng(6788322)
     with TemporaryDirectory() as folder:
         from pathlib import Path
@@ -83,11 +83,11 @@ def run():
                 base = time_nodes(2)
                 kernel = CubicSpline(base, fluid_at(base), axis=0)(t)
                 transformed = rfft(np.diff(loads, axis=1), nfft, axis=1)
-                # The unit-step inlet/outlet difference is one at every time.
-                inlet = irfft(transformed * rfft(kernel[1:, 0], nfft), nfft, axis=1)[:, :n]
+                # The unit-step supply/return difference is one at every time.
+                supply = irfft(transformed * rfft(kernel[1:, 0], nfft), nfft, axis=1)[:, :n]
                 fluid = np.zeros((len(loads), len(t), 2))
-                fluid[:, 1:, 0] = inlet
-                fluid[:, 1:, 1] = inlet - loads[:, 1:]
+                fluid[:, 1:, 0] = supply
+                fluid[:, 1:, 1] = supply - loads[:, 1:]
                 seconds = perf_counter() - start
                 for k in (0, 278, 999):
                     np.testing.assert_allclose(fluid[k], reconstruct(kernel, loads[k]), atol=1e-11, rtol=0)
