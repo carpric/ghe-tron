@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+type: software
+title: "GHE-TRON: Transient multipole solver for ground heat exchangers"
+authors:
+  - family-names: Prieto
+    given-names: Carlos
+license: MIT
+message: >-
+  Please cite the software version used and the accompanying manuscript,
+  “A semi-analytical transient multipole method for fluid and ground
+  temperatures of ground heat exchangers under groundwater flow”.

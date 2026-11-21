@@ -1,0 +1,14 @@
+name: ghe-tron-fea
+channels: [conda-forge, nodefaults]
+dependencies:
+  - python=3.11
+  - fenics-dolfinx=0.10.*
+  - petsc=3.24.*=real_*
+  - mpich
+  - python-gmsh=4.15.2
+  - c-compiler
+  - pkg-config
+  - numpy>=2
+  - scipy
+  - pandas
+  - matplotlib-base
