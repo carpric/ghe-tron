@@ -96,7 +96,7 @@ The fit uses 800 Adam updates and reports the scalar residual on independent eva
 
 ## Optional low-Péclet asymptotic comparison
 
-The benchmark is isolated under [optional/asymptotic](optional/asymptotic/README.md). Include that directory for the manuscript with the Rico and Hermanns comparison. The core workflow also works if that directory is omitted.
+For the manuscript with the low-Péclet comparison, run `python reproduce.py asymptotic`. This computes the curves from an independent implementation of the Rico and Hermanns expansion, checks them against the archived values, and rebuilds the figure using the GHE-TRON and FE results. The [optional benchmark](optional/asymptotic/README.md) documents the equations, inputs and command for recomputing all three methods.
 
 ## License and citation
 

@@ -1,4 +1,4 @@
-"""Rico and Hermanns low-Péclet benchmark. The asymptotic temperatures are supplied."""
+"""Recalculate the low-Péclet asymptotic expansion and compare it with GHE-TRON and FE."""
 
 import argparse
 from pathlib import Path
@@ -10,9 +10,36 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from studies.inputs import RESULTS
+from .expansion import inner_problem
 
 DATA = Path(__file__).resolve().parent / "data"
 OUT = RESULTS / "asymptotic"
+
+
+def checked(label, computed, archived):
+    computed = np.asarray(computed)
+    np.testing.assert_allclose(computed, archived, rtol=0, atol=1e-11, equal_nan=False, err_msg=label)
+    difference = np.max(np.abs(computed - np.asarray(archived)))
+    print(f"{label}: {computed.size} values, maximum absolute difference {difference:.3g}")
+    return computed
+
+
+def regenerate_expansion(transient, steady, curve, weights):
+    """Evaluate at the archived abscissae, then check the resulting ordinates."""
+    model = inner_problem(rotation=90.0)
+    pairs = [model.weights(pe) for pe in weights.index]
+    weights[["v1", "v2"]] = checked("Pipe weights", pairs, weights[["v1", "v2"]])
+    for pe, rows in transient.groupby("pe"):
+        temperatures = model.temperatures(pe, rows.tau.to_numpy())
+        mean = temperatures @ weights.loc[pe, ["v1", "v2"]].to_numpy()
+        transient.loc[rows.index, "asymptotic"] = checked(f"Transient Pe={pe:g}", mean, rows.asymptotic)
+
+    pipe_columns = ["pipe1", "pipe2"]
+    pairs = [model.temperatures(pe, np.inf) for pe in curve.pe]
+    curve[pipe_columns] = checked("Steady curves", pairs, curve[pipe_columns])
+    for pipe, rows in steady.groupby("pipe"):
+        values = [model.temperatures(pe, np.inf)[pipe - 1] for pe in rows.pe]
+        steady.loc[rows.index, "asymptotic"] = checked(f"Steady FE comparison, pipe {pipe}", values, rows.asymptotic)
 
 
 def present(recompute=False):
@@ -21,6 +48,7 @@ def present(recompute=False):
     steady = pd.read_csv(DATA / "asymptotic_steady.csv")
     curve = pd.read_csv(DATA / "asymptotic_steady_curve.csv")
     weights = pd.read_csv(DATA / "asymptotic_errors.csv").set_index("pe")
+    regenerate_expansion(transient, steady, curve, weights)
     if recompute:
         from .reference import solve_level
         from .operator import exchanger, converged_temperatures
@@ -41,10 +69,12 @@ def present(recompute=False):
             for i in rows.index:
                 pipe = int(steady.loc[i, "pipe"])
                 steady.loc[i, ["fea", "ghe_tron"]] = [selected[f"pipe{pipe}"], values[idx, pipe - 1]]
-        for method in ("ghe_tron", "asymptotic"):
-            steady[method + "_signed_pct"] = 100 * (steady[method] / steady.fea - 1)
-        transient.to_csv(OUT / "transient.csv", index=False)
-        steady.to_csv(OUT / "steady.csv", index=False)
+    for method in ("ghe_tron", "asymptotic"):
+        steady[method + "_signed_pct"] = 100 * (steady[method] / steady.fea - 1)
+    transient.to_csv(OUT / "transient.csv", index=False)
+    steady.to_csv(OUT / "steady.csv", index=False)
+    curve.to_csv(OUT / "steady_curve.csv", index=False)
+    weights[["v1", "v2"]].to_csv(OUT / "weights.csv")
     axes = plt.subplots(1, 2, figsize=(9, 3.8), layout="constrained")[1]
     scores = []
     for (pe, rows), color in zip(transient.groupby("pe"), ("#165a77", "#ab492b"), strict=True):
